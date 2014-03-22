@@ -17,11 +17,18 @@ pilastri = STRUCT([pilastri1, pilastri2])
 # vetrata
 
 vetrata=CUBOID([11.5,11.5,6])
-vetrata=T([1,2])([3.5,4])(vetrata)
+vetrata=T([1,2])([4,4])(vetrata)
+
+# moduli
+
+x_moduli = QUOTE([-0.1,0.1,-0.1,-0.665] * 13)
+y_moduli = QUOTE([-0.1,0.1,-0.1,-0.665] * 13)
+moduli = INSR(PROD)([x_moduli,y_moduli,QUOTE([-0,6])])
+moduli = T([1,2])([3.79,3.79])(moduli)
 
 # tetto
 
 tetto=CUBOID([18.4,18.4,2])
 tetto=T([1,2,3])([0.4,0.4,6])(tetto)
 
-VIEW(STRUCT([COLOR(CYAN)(vetrata), COLOR(BROWN)(pilastri), COLOR(BROWN)(tetto)]))
+VIEW(STRUCT([COLOR(CYAN)(vetrata), COLOR(BROWN)(pilastri), COLOR(BROWN)(tetto), COLOR(BLACK)(moduli)]))
