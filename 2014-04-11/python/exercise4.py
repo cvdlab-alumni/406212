@@ -41,6 +41,7 @@ giallo = setColor(255,246,156)
 verde = setColor(35,145,35)
 verde2 = setColor(17,87,17)
 marrone = setColor(94,28,0)
+marrone2 = setColor(206,107,7)
 
 # pilastri
 
@@ -274,8 +275,25 @@ panchina3 = T(3)(0.5)(panchina3)
 panchina = STRUCT([COLOR(grigio)(basepanchina), COLOR(grigio)(basepanchina2), COLOR(grigio)(panchina3)])
 panchina = T([1,2])([10,30])(panchina)
 
+# punto di informazioni
+
+punto_informazioni1 = CUBOID([4,0.5,3])
+punto_informazioni1 = STRUCT([COLOR(marrone2)(punto_informazioni1)])
+punto_informazioni2 = T(2)(4)(punto_informazioni1)
+punto_informazioni3 = CUBOID([0.5,4,3])
+punto_informazioni3 = STRUCT([COLOR(marrone2)(punto_informazioni3)])
+punto_informazioni4 = CUBOID([0.5,4,1.5])
+punto_informazioni4 = STRUCT([COLOR(marrone2)(punto_informazioni4)])
+punto_informazioni4 = T(1)(3.5)(punto_informazioni4)
+tetto_pi = CUBOID([4.5,4.5,0.3])
+tetto_pi = STRUCT([COLOR(marrone2)(tetto_pi)])
+tetto_pi = T(3)(3)(tetto_pi)
+
+punto_informazioni = STRUCT([punto_informazioni1,punto_informazioni2,punto_informazioni3,punto_informazioni4,tetto_pi])
+punto_informazioni = T([1,2])([-15,23])(punto_informazioni)
+
 # 3D model
 
-model_3D = STRUCT([nationalgalerie, palazzi, alberi, pavimentazione, lampione, panchina])
+model_3D = STRUCT([nationalgalerie, palazzi, alberi, pavimentazione, lampione, panchina, punto_informazioni])
 
 VIEW(model_3D)
