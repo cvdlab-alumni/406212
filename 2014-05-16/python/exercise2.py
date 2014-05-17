@@ -253,6 +253,8 @@ hpc5 = STRUCT(MKPOLS(rc))
 hpc5 = T([1,2])([8.3,2.3])(hpc5)
 # DRAW(rc)
 
+# Balcone
+
 balcone = assemblyDiagramInit([3,3,2])([[.3,2,.3],[.2,3.6,.2],[.2,.8]])
 V,CV = balcone
 hpc6 = SKEL_1(STRUCT(MKPOLS(balcone)))
