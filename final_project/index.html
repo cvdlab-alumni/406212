@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html>
+ <head> 
+  <title>Appartamento di Filippo Capecci</title> 
+  <style>
+    body{
+      margin: 0;
+      overflow: hidden;
+    }
+
+    #stats {  /* Align stats top-left */
+      position: absolute;
+      left: 0px;
+      top: 0px;
+    }
+    #pointer {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      margin-top: -20px;
+      margin-left: -20px;
+      width: 40px;
+      height: 40px;
+      display: none;
+      background-image: url("textures/pointer.png");
+      background-repeat: no-repeat;
+      background-size: contain;
+    }
+    #instructions {
+      text-shadow:0px 0px 20px rgba(0,191,255,1);
+      font-weight:bold;
+      font-size:30px;
+      font-family:arial, helvetica, sans-serif;
+      text-align:center;
+      position: fixed;
+      top: 5%;
+      left: 80%;
+      margin-top: -15px;
+      margin-left: -50px;
+      width: 200px;
+      height: 30px;
+      display: none;
+    }
+
+    #plerror {
+      text-shadow:0px 0px 20px rgba(250,100,100,1);
+      font-weight:bold;
+      font-size:30px;
+      font-family:arial, helvetica, sans-serif;
+      text-align:center;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      margin-top: -15px;
+      margin-left: -100px;
+      width: 200px;
+      height: 30px;
+      display: none;
+    }
+  </style> 
+  </head>
+  <body>
+  <div id="stats"></div>
+  <div id="pointer"></div>
+  <div id="instructions">ESC per uscire</div>
+  <div id="plerror">Pointer Lock ERROR!</div>
+  <!-- JavaScript libraries -->
+  <script src="scripts/jquery.min.js"></script> 
+  <script src="scripts/three.min.js"></script>
+  <script src="scripts/Stats.min.js"></script>
+  <script src="scripts/dat.gui.min.js"></script>
+  <script src="scripts/Mirror.js"></script>
+  <script src="scripts/TrackballControls.js"></script>
+  <script src="scripts/OBJLoader.js"></script>
+  <script src="scripts/PointerLockControls.js"></script>
+  <script src="scripts/tween.min.js"></script>
+  <script src="scripts/bagno.js"></script>
+  <script src="scripts/camera_controls.js"></script>
+  <script src="scripts/corridoio.js"></script>
+  <script src="scripts/createbalcony.js"></script>
+  <script src="scripts/createdoor.js"></script>
+  <script src="scripts/createfloor.js"></script>
+  <script src="scripts/createvideo.js"></script>
+  <script src="scripts/createwindow.js"></script>
+  <script src="scripts/cucina.js"></script>
+  <script src="scripts/pianerottolo.js"></script>
+  <script src="scripts/portatile.js"></script>
+  <script src="scripts/salapranzo.js"></script>
+  <script src="scripts/stanzaletto.js"></script>
+  <script src="scripts/soggiorno.js"></script>
+  <script src="scripts/tv.js"></script>
+  <!-- Javascript code that runs our Three.js examples --> 
+  <script>
+    // once everything is loaded, we run our Three.js stuff.
+    $(function () {
+
+      var stats = initStats();
+
+      // create a scene, that will hold all our elements such as objects, cameras and lights.
+      scene = new THREE.Scene();
+
+      // new_scene is an object 3d, that rotate all the objects in the scene
+
+      var new_scene = new THREE.Object3D();
+      new_scene.rotation.x = -Math.PI/2;
+      scene.add(new_scene);
+
+      // create a camera, which defines where we're looking at.
+      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+      // create trackball controls
+      trackballControls = new THREE.TrackballControls(camera);
+
+      // create a render and set the size
+      webGLRenderer = new THREE.WebGLRenderer();
+      webGLRenderer.setClearColor(new THREE.Color(0xeeeeee, 1.0));
+      webGLRenderer.setSize(window.innerWidth, window.innerHeight);
+
+      projector = new THREE.Projector();
+      document.addEventListener('mousedown', onDocumentMouseDown, false);
+
+      // position and point the camera to the center of the scene
+      camera.position.set(-12,-20,30);
+      camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+      FPenabled = false;
+      controls = new THREE.Object3D();
+      objects = [];
+      rayMove = new THREE.Raycaster();
+      rayMove.ray.direction.set(0, 1, 0);
+      /*var*/ rayPointer = new THREE.Raycaster();
+            
+      // add spotlights
+      var spotLight1 = new THREE.SpotLight(0xffffff);
+      spotLight1.position.set(-30, 40, 50);
+      spotLight1.intensity = 1;
+      new_scene.add(spotLight1);
+
+      var spotLight2 = new THREE.SpotLight(0xffffff);
+      spotLight2.position.set(30, -40, -50);
+      spotLight2.intensity = 1;
+      new_scene.add(spotLight2);
+
+      // PIANEROTTOLO:
+
+      floor = createFloor(10.5,10,0.001);
+      floor.position.set(-4,5.2,0.2);
+      new_scene.add(floor);
+
+      carpet = createCarpet(1,2,0.3);
+      carpet.position.set(-0.65,7,0.2);
+      new_scene.add(carpet);
+
+      // PAVIMENTI:
+
+      var parquetSoggiorno1 = createParquet(4.5,4.5,0.001);
+      parquetSoggiorno1.position.set(2.5,2.5,0.35);
+      new_scene.add(parquetSoggiorno1);
+
+      var parquetSoggiorno2 = createParquet(4.5,4.5,0.001);
+      parquetSoggiorno2.position.set(2.5,7,0.35);
+      new_scene.add(parquetSoggiorno2);
+
+      var parquetSoggiorno3 = createParquet(4.5,4.5,0.001);
+      parquetSoggiorno3.position.set(7,2.5,0.35);
+      new_scene.add(parquetSoggiorno3);
+
+      var parquetSoggiorno4 = createParquet(4.5,4.5,0.001);
+      parquetSoggiorno4.position.set(7,6.9,0.35);
+      new_scene.add(parquetSoggiorno4);
+
+      var parquetSalaPranzo = createParquet(4.8,4.3,0.001);
+      parquetSalaPranzo.position.set(2.5,10.1,0.355);
+      new_scene.add(parquetSalaPranzo);
+
+      var parquetCorridoio1 = createParquet(4,4,0.001);
+      parquetCorridoio1.position.set(9.2,4.65,0.335);
+      new_scene.add(parquetCorridoio1);
+
+      var parquetCorridoio2 = createParquet(4,4,0.001);
+      parquetCorridoio2.position.set(9.2,8.65,0.335);
+      new_scene.add(parquetCorridoio2);
+
+      var parquetCorridoio3 = createParquet(4,4,0.001);
+      parquetCorridoio3.position.set(9.2,12.65,0.335);
+      new_scene.add(parquetCorridoio3);
+
+      var parquetCorridoio4 = createParquet(4,4,0.001);
+      parquetCorridoio4.position.set(9.2,16.65,0.335);
+      new_scene.add(parquetCorridoio4);
+
+      var parquetCorridoio5 = createParquet(4,4,0.001);
+      parquetCorridoio5.position.set(9.2,20.65,0.335);
+      new_scene.add(parquetCorridoio5);
+
+      var parquetCorridoio6 = createParquet(4,4,0.001);
+      parquetCorridoio6.position.set(9.2,24.65,0.335);
+      new_scene.add(parquetCorridoio6);
+
+      var parquetCucina = createParquet(6.4,4,0.001);
+      parquetCucina.position.set(5.8,14.5,0.345);
+      new_scene.add(parquetCucina);
+
+      var parquetStanzaLetto1 = createParquet(6.4,4.3,0.001);
+      parquetStanzaLetto1.position.set(5.8,22,0.345);
+      new_scene.add(parquetStanzaLetto1);
+
+      var parquetStanzaLetto2 = createParquet(9,3.3,0.001);
+      parquetStanzaLetto2.position.set(6.85,26,0.345);
+      new_scene.add(parquetStanzaLetto2);
+
+      var parquetStanzaLetto22 = createParquet(1.5,0.25,0.001);
+      parquetStanzaLetto22.position.set(10.2,24.2,0.355);
+      new_scene.add(parquetStanzaLetto22);
+
+      var floorBathroom1 = createFloorBathroom1(4.15,3.2,0.001);
+      floorBathroom1.position.set(6.9,10.7,0.345);
+      new_scene.add(floorBathroom1);
+
+      var floorBathroom2 = createFloorBathroom2(6.4,3.2,0.001);
+      floorBathroom2.position.set(5.8,18.25,0.355);
+      new_scene.add(floorBathroom2);
+
+      // SPECCHI:
+
+      var planeGeo1 = new THREE.PlaneGeometry( 1.5, 5 );
+      var groundMirror1 = new THREE.Mirror( webGLRenderer, camera, { clipBias: 0.003, textureWidth: window.innerWidth, textureHeight: window.innerHeight, color: 0x777777 } );
+      var mirrorMesh1 = new THREE.Mesh( planeGeo1, groundMirror1.material );
+      mirrorMesh1.add( groundMirror1 );
+      mirrorMesh1.rotation.y = -Math.PI/2;
+      mirrorMesh1.position.set(8.85,3,2.7);
+      new_scene.add(mirrorMesh1);
+
+      var verticalMirror1 = new THREE.Mirror( webGLRenderer, camera, { clipBias: 0.003, textureWidth: window.innerWidth, textureHeight: window.innerHeight, color:0x889999 } );
+      var verticalMirrorMesh1 = new THREE.Mesh( new THREE.PlaneGeometry( 5, 5 ), verticalMirror1.material );
+      verticalMirrorMesh1.add( verticalMirror1 );
+      verticalMirrorMesh1.position.y = 35;
+      verticalMirrorMesh1.position.z = -45;
+      new_scene.add(verticalMirrorMesh1);
+
+      var planeGeo2 = new THREE.PlaneGeometry( 1.3, 2 );
+      var groundMirror2 = new THREE.Mirror( webGLRenderer, camera, { clipBias: 0.003, textureWidth: window.innerWidth, textureHeight: window.innerHeight, color: 0x777777, side: THREE.DoubleSide } );
+      var mirrorMesh2 = new THREE.Mesh( planeGeo2, groundMirror2.material );
+      mirrorMesh2.add( groundMirror2 );
+      mirrorMesh2.rotation.y = Math.PI/2;
+      mirrorMesh2.position.set(4.95,10.2,2);
+      new_scene.add(mirrorMesh2);
+
+      var verticalMirror2 = new THREE.Mirror( webGLRenderer, camera, { clipBias: 0.003, textureWidth: window.innerWidth, textureHeight: window.innerHeight, color:0x889999 } );
+      var verticalMirrorMesh2 = new THREE.Mesh( new THREE.PlaneGeometry( 5, 5 ), verticalMirror2.material );
+      verticalMirrorMesh2.add( verticalMirror2 );
+      verticalMirrorMesh2.position.y = 35;
+      verticalMirrorMesh2.position.z = -45;
+      new_scene.add(verticalMirrorMesh2);
+
+      var planeGeo3 = new THREE.PlaneGeometry( 1.5, 4.5 );
+      var groundMirror3 = new THREE.Mirror( webGLRenderer, camera, { clipBias: 0.003, textureWidth: window.innerWidth, textureHeight: window.innerHeight, color: 0x777777 } );
+      var mirrorMesh3 = new THREE.Mesh( planeGeo3, groundMirror3.material );
+      mirrorMesh3.add( groundMirror3 );
+      mirrorMesh3.rotation.y = -Math.PI/2;
+      var hook_mirror3 = new THREE.Object3D();
+      new_scene.add(hook_mirror3);
+      hook_mirror3.position.set(6.75,16.9,2.4);
+      hook_mirror3.rotation.z = -Math.PI/2;
+      hook_mirror3.add(mirrorMesh3);
+
+      var verticalMirror3 = new THREE.Mirror( webGLRenderer, camera, { clipBias: 0.003, textureWidth: window.innerWidth, textureHeight: window.innerHeight, color:0x889999 } );
+      var verticalMirrorMesh3 = new THREE.Mesh( new THREE.PlaneGeometry( 5, 5 ), verticalMirror3.material );
+      verticalMirrorMesh3.add( verticalMirror3 );
+      verticalMirrorMesh3.position.y = 35;
+      verticalMirrorMesh3.position.z = -45;
+      new_scene.add(verticalMirrorMesh3);
+
+      // SOGGIORNO:
+
+      // tv:
+
+      tvsamsung = createTvSamsung();
+      new_scene.add(tvsamsung);
+
+      // video screen:
+
+      breaking_bad = createBBVideo();
+      breaking_bad.position.set(0.48,3.5,1.99);
+      breaking_bad.visible = false;
+      new_scene.add(breaking_bad);
+
+      gerVSargentina = createGermanyVideo();
+      gerVSargentina.position.set(0.48,3.5,2.05);
+      gerVSargentina.visible = false;
+      new_scene.add(gerVSargentina);
+
+      // tappeto:
+
+      persian_carpet = createPersianCarpet(4,2,0.08);
+      new_scene.add(persian_carpet);
+
+      // colonna:
+
+      var column = createColumn();
+      new_scene.add(column);
+
+      // mensola:
+
+      var mensola = createMensola();
+      new_scene.add(mensola);
+
+      // mobile bianco:
+
+      var littleWhiteTable = createLittleWhiteTable();
+      new_scene.add(littleWhiteTable);
+
+      // SALA DA PRANZO:
+
+      // finestra:
+
+      var windowDiningRoom = createFinestraSalaPranzo();
+      new_scene.add(windowDiningRoom);
+
+      // tavolo:
+
+      var whiteTable = createWhiteTable();
+      new_scene.add(whiteTable);
+
+      // mobile:
+
+      var mobile = createMobile();
+      new_scene.add(mobile);
+
+      // tv:
+
+      nordmende = createTvNordmende();
+      new_scene.add(nordmende);
+
+      // ps3:
+
+      playStation3 = createPS3();
+      new_scene.add(playStation3);
+      
+      lightGeometry = new THREE.BoxGeometry(0.01, 0.009, 0.009);
+      material = new THREE.MeshPhongMaterial({color: 0xFF0000, side: THREE.DoubleSide});
+      lightPs3 = new THREE.Mesh(lightGeometry, material);
+      lightPs3.position.set(1.065, 10.54, 1.615);
+      new_scene.add(lightPs3);
+
+      screenps3Tex = THREE.ImageUtils.loadTexture("textures/ps3-screen.jpg");
+      scrGeometry = new THREE.BoxGeometry(0.001, 1.23, 0.67);
+      scrMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide, map: screenps3Tex});
+      screen_ps3 = new THREE.Mesh(scrGeometry, scrMaterial);
+      new_scene.add(screen_ps3);
+      screen_ps3.visible = false;
+
+      // quadro:
+      
+      var painting = createPainting();
+      new_scene.add(painting);
+
+      // sedia bianca:
+
+      var whiteChair = createWhiteChair();
+      new_scene.add(whiteChair);
+
+      // BAGNO VERDE:
+
+      // lavandino:
+
+      var washBasin1 = createWashBasin();
+      washBasin1.position.set(5.35,10.2,0.5);
+      new_scene.add(washBasin1);
+
+      // toilet:
+
+      var toilet1 = createToilet();
+      toilet1.position.set(5.4,11.85,0.65);
+      new_scene.add(toilet1);
+
+      // bidet:
+
+      var bidet1 = createBidet();
+      bidet1.position.set(6.5,11.75,0.65);
+      new_scene.add(bidet1);
+
+      // doccia:
+
+      var shower = createShower();
+      new_scene.add(shower);
+
+      // porta della doccia:
+
+      shdoorGeometry = new THREE.BoxGeometry(0.005, 0.8, 2.3);
+      shdoorMaterial = new THREE.MeshPhongMaterial({color: 0xAFEEEE, side: THREE.DoubleSide, opacity: 0.5, transparent: true});
+      shower_door = new THREE.Mesh(shdoorGeometry, shdoorMaterial);
+      shower_door.position.set(8.1,11.8,1.45);
+      new_scene.add(shower_door);
+
+      // BAGNO ROSA:
+
+      // lavandino:
+
+      var washBasin2 = createWashBasin();
+      washBasin2.position.set(5.5,17.2,0.5);
+      washBasin2.rotation.z = Math.PI/2;
+      new_scene.add(washBasin2);
+
+      // toilet:
+
+      var toilet2 = createToilet();
+      toilet2.position.set(5.4,19.48,0.65);
+      new_scene.add(toilet2);
+
+      // bidet:
+
+      var bidet2 = createBidet();
+      bidet2.position.set(6.5,19.38,0.65);
+      new_scene.add(bidet2);
+
+      // lavatrice:
+
+      var washing_machine = createWashMachine();
+      new_scene.add(washing_machine);
+
+      // vasca da bagno:
+
+      var bath = createBath();
+      new_scene.add(bath);
+
+      // finestra:
+
+      var windowBathroom = createFinestraBagno();
+      new_scene.add(windowBathroom);
+
+      // CORRIDOIO:
+
+      var extraWall1 = createExtraWall1();
+      new_scene.add(extraWall1);
+
+      var extraWall2 = createExtraWall2();
+      new_scene.add(extraWall2);
+
+      var extraWall3 = createExtraWall3();
+      new_scene.add(extraWall3);
+
+      // finestra:
+
+      var windowHallway = createFinestraCorridoio();
+      new_scene.add(windowHallway);
+
+      // CUCINA:
+
+      // tavolo cucina:
+
+      var blackTable = createBlackTable();
+      new_scene.add(blackTable);
+
+      // sedie:
+
+      var blackChair1 = createBlackChair();
+      blackChair1.position.set(7,13.3,1);
+      new_scene.add(blackChair1);
+
+      var blackChair2 = createBlackChair();
+      blackChair2.rotation.z = Math.PI;
+      blackChair2.position.set(4.4,13.3,1);
+      new_scene.add(blackChair2);
+
+      // frigorifero:
+
+      var fridge = createFridge();
+      new_scene.add(fridge);
+
+      spoGeometry = new THREE.BoxGeometry(0.6, 0.05, 0.45);
+      spoMaterial = new THREE.MeshPhongMaterial({color: 0x000000, side: THREE.DoubleSide});
+      sportellofrigo = new THREE.Mesh(spoGeometry, spoMaterial);
+      sportellofrigo.position.set(8.35,15.5,1.8);
+      new_scene.add(sportellofrigo);
+
+      // lavandino:
+
+      var washBasin3 = createWashBasin();
+      washBasin3.position.set(4,16.12,0.5);
+      washBasin3.rotation.z = -Math.PI/2;
+      new_scene.add(washBasin3);
+
+      // piano cottura:
+
+      var stove = createStove();
+      new_scene.add(stove);
+
+      // scatola della pizza:
+
+      var box_pizza = createBoxPizza();
+      box_pizza.position.set(5.8,13.3,1.375);
+      new_scene.add(box_pizza);
+
+      cover_box_pizza = createCoverBoxPizza();
+      cover_box_pizza.position.set(5.8,13.3,1.42);
+      new_scene.add(cover_box_pizza);
+
+      // pizza:
+
+      var pizza = createPizza();
+      box_pizza.add(pizza);
+
+      // STANZA DA LETTO DEI MIEI GENITORI:
+
+      // armadio:
+
+      var wardrobe1 = createWardrobe();
+      wardrobe1.rotation.z = Math.PI;
+      wardrobe1.position.set(5.15,20.4,1.5);
+      new_scene.add(wardrobe1);
+
+      // letto matrimoniale:
+
+      var bed11 = createDoubleBed();
+      bed11.position.set(6.4,23,0.6);
+      new_scene.add(bed11);
+
+      var bed12 = createDoubleBed();
+      bed12.position.set(5.1,23,0.6);
+      new_scene.add(bed12);
+
+      // lampade:
+
+      var lamp1 = createLamp();
+
+      var light1 = new THREE.PointLight(0xffffff,1,1.5);
+      light1.castShadow = true;
+      lamp1.lampLight.add(light1);
+      lamp1.base.position.set(8.4,23.7,0.9);
+      
+      new_scene.add(lamp1);
+
+      var lamp2 = createLamp();
+
+      var light2 = new THREE.PointLight(0xffffff,1,1.5);
+      light2.castShadow = true;
+      lamp2.lampLight.add(light2);
+      lamp2.base.position.set(3,23.7,0.9);
+      
+      new_scene.add(lamp2);
+
+      // comodini:
+
+      var bedSide_table1 = createBedSideTable();
+      bedSide_table1.position.set(8.4,23.7,0.6);
+      new_scene.add(bedSide_table1);
+
+      var bedSide_table2 = createBedSideTable();
+      bedSide_table2.position.set(3,23.7,0.6);
+      new_scene.add(bedSide_table2);
+
+      // STANZA DI FILIPPO CAPECCI (NON ENTRATE, DISORDINE OVUNQUE):
+
+      // armadio:
+
+      var wardrobe2 = createWardrobe();
+      wardrobe2.position.set(5.1,27.2,1.5);
+      new_scene.add(wardrobe2);
+
+      // letto:
+
+      var bed2 = createSingleBed();
+      bed2.position.set(9.75, 26.75, 0.6);
+      new_scene.add(bed2);
+
+      // comodino:
+
+      var bedSide_table3 = createBedSideTable();
+      bedSide_table3.rotation.z = -Math.PI/2;
+      bedSide_table3.position.set(11,25.6,0.6);
+      new_scene.add(bedSide_table3);
+
+      // lampada:
+
+      var lamp3 = createLamp();
+      var light3 = new THREE.PointLight(0xffffff,1,1.5);
+      light3.castShadow = true;
+      lamp3.lampLight.add(light3);
+      lamp3.base.position.set(11,25.6,0.9);
+      new_scene.add(lamp3);
+
+      // poster:
+
+      var poster = createPosterRoma();
+      poster.position.set(11.2,25.5,2);
+      new_scene.add(poster);
+
+      // quadro Italia:
+
+      var quadroPuzzleItalia = createQuadroItalia();
+      new_scene.add(quadroPuzzleItalia);
+
+      // tavolino:
+
+      var woodTable = createWoodTable();
+      new_scene.add(woodTable);
+
+      // sedia nera:
+
+      var blackChair3 = createBlackChair();
+      blackChair3.rotation.z = Math.PI;
+      blackChair3.position.set(4.4,25,1);
+      new_scene.add(blackChair3);
+
+      // portatile:
+
+      pc = createLaptop();
+      pc.position.y = 0.175;
+      //new_scene.add(pc);
+
+      basepc = createBaseLaptop();
+      basepc.position.set(6,25,1.375);
+      new_scene.add(basepc);
+
+      screenpc = createScreenPc();
+      screenpc.position.z = -0.0175;
+      pc.add(screenpc);
+            
+      // FINESTRE:
+
+      // finestra soggiorno:
+
+      window11 = createWindow();
+      window11.position.set(0.45,0,0.75);
+
+      window12 = createWindow();
+      window12.position.set(7.4,0.15,1.75);
+      new_scene.add(window12);
+
+      // finestra cucina:
+
+      window21 = createWindow();
+      window21.rotation.z = Math.PI/2;
+      window21.position.set(0,0.55,0.75);
+
+      window22 = createWindow();
+      window22.rotation.z = Math.PI/2;
+      window22.position.set(0,-0.45,0.75);
+
+      // finestra prima stanza da letto:
+
+      window31 = createWindowBedroom1();
+      window31.position.set(2.5,21.7,1.35);
+      new_scene.add(window31);
+
+      window32 = createWindowBedroom1();
+      window32.position.set(2.4,22.5,1.35);
+      new_scene.add(window32);
+
+      // finestra seconda stanza da letto:
+
+      window41 = createWindowBedroom2();
+      window41.rotation.z = Math.PI/2;
+      window41.position.set(0,0.4,0.75);
+
+      window42 = createWindowBedroom2();
+      window42.rotation.z = Math.PI/2;
+      window42.position.set(0,-0.35,0.75);
+
+      // PORTE:
+
+      door1 = createMainDoor(0.2,1.75,2.1);
+      door2 = createDoor(0.1,1.9,2.1);
+      door3 = createDoor2(0.1,1.5,2.1);
+      door4 = createDoor2(0.1,1.5,2.1);
+      door5 = createDoor2(0.1,1.9,2.1);
+      new_scene.add(door5);
+      door6 = createDoor(0.1,1.9,2.1);
+      door7 = createDoor(0.1,0.9,2.1);
+      door7.rotation.z = Math.PI/2;
+      door8 = createDoor2(0.1,0.75,2.1);
+      door8.rotation.z = Math.PI/2;
+      door9 = createDoor(0.1,1.4,2.2);
+      door9.rotation.z = Math.PI/2;
+      
+      door1.position.set(0.1,0.9,1.35);
+      door2.position.set(0.1,1,1.35);
+      door3.position.set(0.1,-0.75,1.35);
+      door4.position.set(0,-0.75,1.35);
+      door5.position.set(9.2,14.5,1.35);
+      door6.position.set(0,0.9,1.35);
+      door7.position.set(-0.35,0,1.35);
+      door8.position.set(0.4,0,1.35);
+      door9.position.set(-0.7,0,1.35);
+
+      // INTERAZIONI:
+
+      door1open = false;
+      door2open = false;
+      door3open = false;
+      door4open = false;
+      door5open = false;
+      door6open = false;
+      door7open = false;
+      door8open = false;
+      door9open = false;
+      shower_doorOpen = false;
+      sportellofrigoAperto = false;
+      window11open = false;
+      window21open = false;
+      window22open = false;
+      window31open = false;
+      window41open = false;
+      window42open = false;
+      ps3Open = false;
+      laptopOpen = false;
+      cover_box_pizza_open = false;
+      samsungOn = 0;
+
+      door1.interact = function () {
+        if(door1open === false) {
+
+          new TWEEN.Tween(door1.parent.rotation).to({z: -Math.PI/2},1000).start();
+          door1open = true;
+          //door1.parent.rotation.z += -Math.PI/2;
+          //door1open = true;
+          //hook_door1.rotation.z = -Math.PI/2;
+        }
+        else {
+          new TWEEN.Tween(door1.parent.rotation).to({z: 0},1000).start();
+          door1open = false;
+          //door1.parent.rotation.z += Math.PI/2;
+          //door1open = false;
+        }
+        
+      }
+
+      door2.interact = function () {
+        if(door2open === false) {
+
+          new TWEEN.Tween(door2.parent.rotation).to({z: -Math.PI/2},1000).start();
+          door2open = true;
+          
+        }
+        else {
+          
+          new TWEEN.Tween(door2.parent.rotation).to({z: 0},1000).start();
+          door2open = false;
+        }
+        
+      }
+
+      door3.interact = function () {
+        if(door3open === false) {
+
+          new TWEEN.Tween(door3.parent.rotation).to({z: -Math.PI/2},1000).start();
+          door3open = true;
+          
+        }
+        else {
+
+          new TWEEN.Tween(door3.parent.rotation).to({z: 0},1000).start();
+          door3open = false;
+        }
+        
+      }
+
+      door4.interact = function () {
+        if(door4open === false) {
+
+          new TWEEN.Tween(door4.parent.rotation).to({z: -Math.PI/2},1000).start();
+          door4open = true;
+          
+        }
+        else {
+
+          new TWEEN.Tween(door4.parent.rotation).to({z: 0},1000).start();
+          door4open = false;
+        }
+        
+      }
+
+      door5.interact = function () {
+        if(door5open === false) {
+
+          new TWEEN.Tween(door5.position).to({x: 9.2, y: 15.7, z: 1.35},500).start();
+          door5open = true;
+        }
+        else {
+          
+          new TWEEN.Tween(door5.position).to({x: 9.2, y: 14.5, z: 1.35},500).start();
+          door5open = false;
+        }
+        
+      }
+
+      door6.interact = function () {
+        if(door6open === false) {
+
+          new TWEEN.Tween(door6.parent.rotation).to({z: Math.PI/2},1000).start();
+          door6open = true;
+        }
+        else {
+          new TWEEN.Tween(door6.parent.rotation).to({z: 0},1000).start();
+          door6open = false;
+        }
+        
+      }
+
+      door7.interact = function () {
+        if(door7open === false) {
+          
+          new TWEEN.Tween(door7.parent.rotation).to({z: -Math.PI/2},1000).start();
+          door7open = true;
+        }
+        else {
+          new TWEEN.Tween(door7.parent.rotation).to({z: 0},1000).start();
+          door7open = false;
+        }
+        
+      }
+
+      door8.interact = function () {
+        if(door8open === false) {
+
+          new TWEEN.Tween(door8.parent.rotation).to({z: Math.PI/2},1000).start();
+          door8open = true;
+        }
+        else {
+          new TWEEN.Tween(door8.parent.rotation).to({z: 0},1000).start();
+          door8open = false;
+        }
+        
+      }
+
+      door9.interact = function () {
+        if(door9open === false) {
+
+          new TWEEN.Tween(door9.parent.rotation).to({z: -Math.PI/2},1000).start();
+          door9open = true;
+        }
+        else {
+          new TWEEN.Tween(door9.parent.rotation).to({z: 0},1000).start();
+          door9open = false;
+        }
+        
+      }
+
+      shower_door.interact = function () {
+        if(shower_doorOpen === false) {
+          
+          new TWEEN.Tween(shower_door.position).to({x: 8.1, y: 11.1, z: 1.45},400).start();
+          shower_doorOpen = true;
+        }
+        else {
+          new TWEEN.Tween(shower_door.position).to({x: 8.1, y: 11.8, z: 1.45},400).start();
+          shower_doorOpen = false;
+        }
+        
+      }
+
+      sportellofrigo.interact = function () {
+        if( sportellofrigoAperto === false ) {
+          sportellofrigo.rotation.x += -Math.PI/2;
+          sportellofrigo.position.set(8.35,15.275,1.58);
+          sportellofrigoAperto = true;
+        }
+        else {
+          sportellofrigo.rotation.x += Math.PI/2;
+          sportellofrigo.position.set(8.35,15.5,1.8);
+          sportellofrigoAperto = false;
+        }
+        
+      }
+
+      window11.interact = function () {
+        if(window11open === false) {
+
+          new TWEEN.Tween(window11.parent.rotation).to({z: Math.PI/2},1000).start();
+          window11open = true;
+        }
+        else {
+          new TWEEN.Tween(window11.parent.rotation).to({z: 0},1000).start();
+          window11open = false;
+        }
+        
+      }
+
+      window21.interact = function () {
+        if(window21open === false) {
+
+          new TWEEN.Tween(window21.parent.rotation).to({z: -Math.PI/2},1000).start();
+          window21open = true;
+        }
+        else {
+          new TWEEN.Tween(window21.parent.rotation).to({z: 0},1000).start();
+          window21open = false;
+        }
+        
+      }
+
+      window22.interact = function () {
+        if(window22open === false) {
+
+          new TWEEN.Tween(window22.parent.rotation).to({z: Math.PI/2},1000).start();
+          window22open = true;
+        }
+        else {
+          new TWEEN.Tween(window22.parent.rotation).to({z: 0},1000).start();
+          window22open = false;
+        }
+        
+      }
+
+      window31.interact = function () {
+        if(window31open === false) {
+          
+          new TWEEN.Tween(window31.position).to({x: 2.5, y: 22.4, z: 1.35},400).start();
+          window31open = true;
+        }
+        else {
+          new TWEEN.Tween(window31.position).to({x: 2.5, y: 21.7, z: 1.35},400).start();
+          window31open = false;
+        }
+        
+      }
+
+      window41.interact = function () {
+        if(window41open === false) {
+          
+          new TWEEN.Tween(window41.parent.rotation).to({z: -Math.PI/2},1000).start();
+          window41open = true;
+        }
+        else {
+          new TWEEN.Tween(window41.parent.rotation).to({z: 0},1000).start();
+          window41open = false;
+        }
+        
+      }
+
+      window42.interact = function () {
+        if(window42open === false) {
+
+          new TWEEN.Tween(window42.parent.rotation).to({z: Math.PI/2},1000).start();
+          window42open = true;
+        }
+        else {
+          new TWEEN.Tween(window42.parent.rotation).to({z: 0},1000).start();
+          window42open = false;
+        }
+        
+      }
+
+      pc.interact = function () {
+        if( laptopOpen === false ) {
+
+          new TWEEN.Tween(pc.parent.rotation).to({x: Math.PI/2},1000).start();
+          laptopOpen = true;
+        }
+        else {
+          
+          new TWEEN.Tween(pc.parent.rotation).to({x: 0},1000).start();
+          laptopOpen = false;
+          
+        }
+        
+      }
+
+      lightPs3.interact = function () {
+        if(ps3Open === false) {
+          lightPs3.material.color.setHex( 0x32CD32 );
+          ps3Open === true;
+          screen_ps3.visible = true;
+          screen_ps3.position.set(0.675,11.2,2.12);
+        }
+      }
+
+      nordmende.interact = function () {
+          lightPs3.material.color.setHex( 0xFF0000 );
+          ps3Open === false;
+          screen_ps3.visible = false;
+      }
+
+      cover_box_pizza.interact = function () {
+        if(cover_box_pizza_open === false) {
+          cover_box_pizza.rotation.y += -Math.PI/2;
+          cover_box_pizza.position.set(5.5,13.3,1.705);
+          cover_box_pizza_open = true;
+        }
+        else {
+          cover_box_pizza.rotation.y += Math.PI/2;
+          cover_box_pizza.position.set(5.8,13.3,1.42);
+          cover_box_pizza_open = false;
+        }
+        
+      }
+
+      tvsamsung.interact = function () {
+        if( samsungOn === 0 ) {
+          breaking_bad.visible = true;
+          breaking_bad.video.play();
+          samsungOn = 1;
+        }
+        else {
+          if ( samsungOn === 1 ) {
+            breaking_bad.visible = false;
+            breaking_bad.video.pause();
+            samsungOn = 2;
+            gerVSargentina.visible = true;
+            gerVSargentina.video.play();
+          }
+          else {
+            samsungOn = 0;
+            gerVSargentina.visible = false;
+            gerVSargentina.video.pause();
+          }
+          
+        }
+        
+      }
+      
+      // PERNI:
+
+      // aggiungo un oggetto sphere per capire la posizione del perno, che serve a far aprire porte e finestre.
+
+      var sphereGeometry = new THREE.SphereGeometry(0.01, 20, 20);
+      var sphereMaterial = new THREE.MeshLambertMaterial({color: 0x000000});
+      var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+
+      hook_door1 = new THREE.Object3D();
+      //hook_door1.add(sphere);
+      hook_door1.position.set(0,6,0);
+      new_scene.add(hook_door1);
+
+      hook_door2 = new THREE.Object3D();
+      //hook_door2.add(sphere);
+      hook_door2.position.set(9,5.9,0);
+      new_scene.add(hook_door2);
+
+      hook_door3 = new THREE.Object3D();
+      //hook_door3.add(sphere);
+      hook_door3.position.set(9,11.35,0);
+      new_scene.add(hook_door3);
+
+      hook_door4 = new THREE.Object3D();
+      //hook_door4.add(sphere);
+      hook_door4.position.set(9,19,0);
+      new_scene.add(hook_door4);
+
+      hook_door6 = new THREE.Object3D();
+      //hook_door6.add(sphere);
+      hook_door6.position.set(9,21.25,0);
+      new_scene.add(hook_door6);
+
+      hook_door7 = new THREE.Object3D();
+      //hook_door7.add(sphere);
+      hook_door7.position.set(10.6,24.3,0);
+      new_scene.add(hook_door7);
+
+      hook_door8 = new THREE.Object3D();
+      //hook_door8.add(sphere);
+      hook_door8.position.set(9.8,4.75,0);
+      new_scene.add(hook_door8);
+
+      hook_door9 = new THREE.Object3D();
+      //hook_door9.add(sphere);
+      hook_door9.position.set(10.9,16.65,0);
+      new_scene.add(hook_door9);
+
+      hook_window11 = new THREE.Object3D();
+      //hook_window11.add(sphere);
+      hook_window11.position.set(5.9,0.15,1);
+      new_scene.add(hook_window11);
+
+      hook_window21 = new THREE.Object3D();
+      //hook_window21.add(sphere);
+      hook_window21.position.set(2.45,13.45,1);
+      new_scene.add(hook_window21);
+
+      hook_window22 = new THREE.Object3D();
+      //hook_window22.add(sphere);
+      hook_window22.position.set(2.45,15.45,1);
+      new_scene.add(hook_window22);
+
+      hook_window41 = new THREE.Object3D();
+      //hook_window41.add(sphere);
+      hook_window41.position.set(2.45,25.1,1);
+      new_scene.add(hook_window41);
+
+      hook_window42 = new THREE.Object3D();
+      //hook_window42.add(sphere);
+      hook_window42.position.set(2.45,26.65,1);
+      new_scene.add(hook_window42);
+
+      hook_pc = new THREE.Object3D();
+      //hook_pc.add(sphere);
+      hook_pc.position.set(6,24.825,1.39);
+      new_scene.add(hook_pc);
+
+
+      hook_door1.add(door1);
+      hook_door2.add(door2);
+      hook_door3.add(door3);
+      hook_door4.add(door4);
+      hook_door6.add(door6);
+      hook_door7.add(door7);
+      hook_door8.add(door8);
+      hook_door9.add(door9);
+      hook_window11.add(window11);
+      hook_window21.add(window21);
+      hook_window22.add(window22);
+      hook_window41.add(window41);
+      hook_window42.add(window42);
+      hook_pc.add(pc);
+
+      // BALCONE:
+
+      var balcony = createBalcony();
+
+      new_scene.add(balcony);
+
+      // add the output of the renderer to the html element
+      $('body').append(webGLRenderer.domElement);
+
+      // call the render function
+      var step = 0;
+
+      // setup the control gui
+      var controlDatGui = new function () {
+            this.welcome_home = welcome;
+            this.switch1 = true;
+            this.switch2 = true;
+            this.switch3 = true;
+      };
+
+      var gui = new dat.GUI();
+
+      gui.add(controlDatGui, "welcome_home");
+
+      var guiLamp = gui.addFolder('Controlli lampade');
+      guiLamp.add(controlDatGui, 'switch1').onChange(function (value) {
+          
+          if(!controlDatGui.switch1){
+            light1.intensity = 0;
+            light1.shadowDarkness = 0;
+          }
+          else {
+            light1.intensity = 1;
+            light1.shadowDarkness = 0.5;
+          }
+      });
+      guiLamp.add(controlDatGui, 'switch2').onChange(function (value) {
+          
+          if(!controlDatGui.switch2){
+            light2.intensity = 0;
+            light2.shadowDarkness = 0;
+            
+          }
+          else {
+            light2.intensity = 1;
+            light2.shadowDarkness = 0.5;
+            
+          }
+      });
+      guiLamp.add(controlDatGui, 'switch3').onChange(function (value) {
+          
+          if(!controlDatGui.switch3){
+            light3.intensity = 0;
+            light3.shadowDarkness = 0;
+          }
+          else {
+            light3.intensity = 1;
+            light3.shadowDarkness = 0.5;
+          }
+      });
+
+      var mesh;
+
+      // CASA (MODELLO CREATO TRAMITE LA LIBRERIA LAR-CC):
+
+      var home = new THREE.OBJLoader();
+      home.load('assets/models/casa.obj', function (obj) {
+
+        global_o = obj;
+
+        // var material = new THREE.MeshLambertMaterial({color: 0xaaaaaa});
+        // material.side = THREE.DoubleSide;
+        // obj.children[0].material = material;
+        // mesh = obj.children[0];
+
+        var multiMaterial = [
+          new THREE.MeshPhongMaterial({color: 0xFFFFE0, side: THREE.DoubleSide, shading: THREE.FlatShading}),
+          new THREE.MeshBasicMaterial({wireframe: false, overdraw: true, color: 0xFFFFE0, side: THREE.DoubleSide})
+          ];
+
+        mesh = THREE.SceneUtils.createMultiMaterialObject(obj.children[0].geometry, multiMaterial);
+        mesh.receiveShadow = true;
+          
+        new_scene.add(mesh);
+      });
+
+      var sofa = new THREE.OBJLoader();
+      sofa.load('assets/models/sofa.obj', function (obj) {
+
+        global_o = obj;
+
+        // var material = new THREE.MeshLambertMaterial({color: 0xaaaaaa});
+        // material.side = THREE.DoubleSide;
+        // obj.children[0].material = material;
+        // mesh = obj.children[0];
+
+        var multiMaterial = [
+          new THREE.MeshPhongMaterial({color: 0x000080, side: THREE.DoubleSide, shading: THREE.FlatShading}),
+          new THREE.MeshBasicMaterial({wireframe: false, overdraw: true, color: 0x000080, side: THREE.DoubleSide})
+          ];
+
+        mesh = THREE.SceneUtils.createMultiMaterialObject(obj.children[0].geometry, multiMaterial);
+        mesh.scale.set(0.25,0.25,0.25);
+        mesh.rotation.x = Math.PI/2;
+        mesh.rotation.y = Math.PI;
+        mesh.position.set(7.5,2.8,0.6);
+          
+        new_scene.add(mesh);
+      });
+
+      var pillows = new THREE.OBJLoader();
+      pillows.load('assets/models/pillow.obj', function (obj) {
+
+        global_o = obj;
+
+        // var material = new THREE.MeshLambertMaterial({color: 0xaaaaaa});
+        // material.side = THREE.DoubleSide;
+        // obj.children[0].material = material;
+        // mesh = obj.children[0];
+
+        var multiMaterial = [
+          new THREE.MeshPhongMaterial({color: 0xFFFFE0, side: THREE.DoubleSide, shading: THREE.FlatShading}),
+          new THREE.MeshBasicMaterial({wireframe: false, overdraw: true, color: 0xFFFFE0, side: THREE.DoubleSide})
+          ];
+
+        mesh = THREE.SceneUtils.createMultiMaterialObject(obj.children[0].geometry, multiMaterial);
+        mesh2 = THREE.SceneUtils.createMultiMaterialObject(obj.children[0].geometry, multiMaterial);
+        
+        mesh.scale.set(0.002,0.002,0.002);
+        mesh.rotation.y = Math.PI;
+        mesh.rotation.x = -Math.PI/6;
+        mesh.position.set(5.8,23.7,1);
+
+        mesh2.scale.set(0.001,0.001,0.001);
+        mesh2.rotation.z = Math.PI/2;
+        mesh2.position.set(11.2,26.75,1);
+          
+        new_scene.add(mesh);
+        new_scene.add(mesh2);
+      });
+
+      render();
+
+      function render() {
+        stats.update();
+        trackballControls.update();
+        groundMirror1.renderWithMirror( verticalMirror1 );
+        verticalMirror1.renderWithMirror( groundMirror1 );
+        groundMirror2.renderWithMirror( verticalMirror2 );
+        verticalMirror2.renderWithMirror( groundMirror2 );
+        groundMirror3.renderWithMirror( verticalMirror3 );
+        verticalMirror3.renderWithMirror( groundMirror3 );
+        TWEEN.update();
+
+        if (FPenabled === true) {
+          computeFPControls();
+        }
+
+        if ( breaking_bad.video.readyState === breaking_bad.video.HAVE_ENOUGH_DATA ) {
+              breaking_bad.videoImageContext.drawImage( breaking_bad.video, 0, 0 );
+        if ( breaking_bad.videoTexture ) 
+              breaking_bad.videoTexture.needsUpdate = true;
+        }
+
+        if ( gerVSargentina.video.readyState === gerVSargentina.video.HAVE_ENOUGH_DATA ) {
+              gerVSargentina.videoImageContext.drawImage( gerVSargentina.video, 0, 0 );
+        if ( gerVSargentina.videoTexture ) 
+              gerVSargentina.videoTexture.needsUpdate = true;
+        }
+
+        // render using requestAnimationFrame
+        requestAnimationFrame(render);
+        webGLRenderer.render(scene, camera);
+      }
+      function onDocumentMouseDown (event) {
+        event.preventDefault();
+
+        if (document.pointerLockElement === element || document.mozPointerLockElement === element 
+            || document.webkitPointerLockElement === element) {
+                var vector = new THREE.Vector3(0, 0, 0.5);
+                projector.unprojectVector(vector, camera);
+                var raycaster = new THREE.Raycaster(vector,
+                                    controls.getDirection(new THREE.Vector3(0, 0, 0)).clone());
+        } else {
+                var vector = new THREE.Vector3((event.clientX / window.innerWidth) * 2 - 1, 
+                                              -(event.clientY / window.innerHeight) * 2 + 1, 0.5);
+                projector.unprojectVector(vector, camera);
+                var raycaster = new THREE.Raycaster(camera.position,vector.sub(camera.position).normalize());
+
+        }
+
+        var intersects = raycaster.intersectObjects([door1, door2, door3, door4, door5, door6, door7, door8, door9, shower_door, sportellofrigo, window11, window21, window22, window31, window41, window42, lightPs3, nordmende, cover_box_pizza, pc, tvsamsung]);
+
+        if (intersects.length > 0) {
+          intersects[ 0 ].object.interact && intersects[ 0 ].object.interact();
+        }
+      }
+
+      function initStats() {
+        var stats = new Stats();
+        stats.setMode(0); // 0: fps, 1: ms
+        $('body').append(stats.domElement);
+        return stats;
+      }
+    });
+  </script>  
+ </body>
+</html>
