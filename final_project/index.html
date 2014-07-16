@@ -706,7 +706,7 @@
       ps3Open = false;
       laptopOpen = false;
       cover_box_pizza_open = false;
-      samsungOn = 0;
+      samsung_channel = 0;
 
       door1.interact = function () {
         if(door1open === false) {
@@ -987,21 +987,21 @@
       }
 
       tvsamsung.interact = function () {
-        if( samsungOn === 0 ) {
+        if( samsung_channel === 0 ) {
           breaking_bad.visible = true;
           breaking_bad.video.play();
-          samsungOn = 1;
+          samsung_channel = 1;
         }
         else {
-          if ( samsungOn === 1 ) {
+          if ( samsung_channel === 1 ) {
             breaking_bad.visible = false;
             breaking_bad.video.pause();
-            samsungOn = 2;
+            samsung_channel = 2;
             gerVSargentina.visible = true;
             gerVSargentina.video.play();
           }
           else {
-            samsungOn = 0;
+            samsung_channel = 0;
             gerVSargentina.visible = false;
             gerVSargentina.video.pause();
           }

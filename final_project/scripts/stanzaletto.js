@@ -48,7 +48,7 @@ function createSingleBed () {
 function createPosterRoma () {
     var Tex = THREE.ImageUtils.loadTexture("textures/poster.jpg");
     var posGeometry = new THREE.BoxGeometry(0.001, 0.35, 0.6);
-    var posMaterial = new THREE.MeshPhongMaterial({side: THREE.DoubleSide, map: Tex});
+    var posMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide, map: Tex});
     var poster = new THREE.Mesh(posGeometry, posMaterial);
 
     return poster;
@@ -62,7 +62,7 @@ function createQuadroItalia () {
 
     var itaTex = THREE.ImageUtils.loadTexture("textures/italia.jpg");
     var itaGeometry = new THREE.BoxGeometry(0.001, 0.5, 0.8);
-    var itaMaterial = new THREE.MeshPhongMaterial({side: THREE.DoubleSide, map: itaTex});
+    var itaMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide, map: itaTex});
     var puzzleItalia = new THREE.Mesh(itaGeometry, itaMaterial);
     puzzleItalia.position.x = -0.05;
     cornice.add(puzzleItalia);
